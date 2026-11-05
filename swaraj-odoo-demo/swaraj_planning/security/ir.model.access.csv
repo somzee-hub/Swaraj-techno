@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_plan_run_user,plan run user,model_swaraj_plan_run,mrp.group_mrp_user,1,1,1,1
+access_plan_line_user,plan line user,model_swaraj_plan_line,mrp.group_mrp_user,1,1,1,1
+access_plan_capacity_user,plan capacity user,model_swaraj_plan_capacity,mrp.group_mrp_user,1,1,1,1
+access_plan_mo_user,plan mo user,model_swaraj_plan_mo,mrp.group_mrp_user,1,1,1,1
+access_plan_material_user,plan material user,model_swaraj_plan_material,mrp.group_mrp_user,1,1,1,1
+access_demo_loader_mgr,demo loader manager,model_swaraj_demo_loader,mrp.group_mrp_manager,1,1,1,1

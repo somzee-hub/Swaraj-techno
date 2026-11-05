@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_plan_run" model="ir.sequence">
+        <field name="name">Production Plan Run</field>
+        <field name="code">swaraj.plan.run</field>
+        <field name="prefix">PLAN/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

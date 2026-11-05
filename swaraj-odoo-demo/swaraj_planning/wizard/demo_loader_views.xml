@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_demo_loader_form" model="ir.ui.view">
+        <field name="name">swaraj.demo.loader.form</field>
+        <field name="model">swaraj.demo.loader</field>
+        <field name="arch" type="xml">
+            <form string="Swaraj Demo Data">
+                <field name="loaded" invisible="1"/>
+                <p invisible="loaded">
+                    Loads two units, 14 work centres with shift calendars, 4 machine families with
+                    3-level BOMs and routings, opening stock, 5 customer projects (4 released to
+                    production), project milestones and a Unit 2 sales pipeline.
+                </p>
+                <p invisible="not loaded">
+                    Demo data is loaded. Removing it cancels and deletes the demo orders, plans and
+                    masters. Records that carry stock history are archived instead.
+                </p>
+                <group invisible="loaded">
+                    <field name="rename_company"/>
+                    <field name="run_plan"/>
+                </group>
+                <footer>
+                    <button name="action_load" type="object" string="Load Demo Data" class="btn-primary" invisible="loaded"/>
+                    <button name="action_unload" type="object" string="Remove Demo Data" class="btn-danger" invisible="not loaded"
+                            confirm="Remove all Swaraj demo records?"/>
+                    <button special="cancel" string="Close"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_demo_loader" model="ir.actions.act_window">
+        <field name="name">Demo Data</field>
+        <field name="res_model">swaraj.demo.loader</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

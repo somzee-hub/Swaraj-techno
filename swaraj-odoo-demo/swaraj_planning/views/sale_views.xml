@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_swaraj" model="ir.ui.view">
+        <field name="name">sale.order.form.swaraj</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_swaraj_explode" type="object" string="Release to Production (MRP)"
+                        class="btn-primary" invisible="state != 'sale' or swaraj_mo_count &gt; 0"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_swaraj_view_mos" type="object" class="oe_stat_button" icon="fa-cogs"
+                        invisible="swaraj_mo_count == 0">
+                    <field name="swaraj_mo_count" widget="statinfo" string="Production"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

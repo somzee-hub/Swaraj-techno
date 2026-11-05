@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_swaraj_root" name="Project Planning" parent="mrp.menu_mrp_root" sequence="5"/>
+    <menuitem id="menu_swaraj_runs" name="Plan Runs" parent="menu_swaraj_root" action="action_plan_run" sequence="10"/>
+    <menuitem id="menu_swaraj_board" name="Day-wise Board" parent="menu_swaraj_root" action="action_plan_line_board" sequence="20"/>
+    <menuitem id="menu_swaraj_capacity" name="Capacity Load" parent="menu_swaraj_root" action="action_plan_capacity" sequence="30"/>
+    <menuitem id="menu_swaraj_outsource" name="Outsourcing Flags" parent="menu_swaraj_root" action="action_plan_line_outsource" sequence="40"/>
+    <menuitem id="menu_swaraj_status" name="Project Status" parent="menu_swaraj_root" action="action_plan_mo" sequence="50"/>
+    <menuitem id="menu_swaraj_material" name="Material Shortages" parent="menu_swaraj_root" action="action_plan_material" sequence="60"/>
+    <menuitem id="menu_swaraj_demo" name="Demo Data" parent="menu_swaraj_root" action="action_demo_loader"
+              sequence="90" groups="mrp.group_mrp_manager"/>
+</odoo>

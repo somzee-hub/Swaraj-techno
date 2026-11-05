@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============ Plan lines ============ -->
+    <record id="view_plan_line_list" model="ir.ui.view">
+        <field name="name">swaraj.plan.line.list</field>
+        <field name="model">swaraj.plan.line</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="status == 'late'" decoration-warning="status == 'outsource'"
+                  decoration-info="status == 'alternate'" create="0" edit="0">
+                <field name="date"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="workcenter_id"/>
+                <field name="project_id"/>
+                <field name="production_id"/>
+                <field name="level" optional="hide"/>
+                <field name="product_id"/>
+                <field name="operation_name"/>
+                <field name="hours" sum="Hours" widget="float_time"/>
+                <field name="status" widget="badge" decoration-success="status == 'in_house'"
+                       decoration-info="status == 'alternate'" decoration-warning="status == 'outsource'"
+                       decoration-danger="status == 'late'"/>
+                <field name="latest_date" optional="show"/>
+                <field name="finish_date" optional="hide"/>
+                <field name="vendor_id" optional="show"/>
+                <field name="purchase_id" optional="show"/>
+                <field name="reason" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_plan_line_calendar" model="ir.ui.view">
+        <field name="name">swaraj.plan.line.calendar</field>
+        <field name="model">swaraj.plan.line</field>
+        <field name="arch" type="xml">
+            <calendar date_start="date" color="workcenter_id" mode="month" create="0" quick_create="0">
+                <field name="workcenter_id" filters="1"/>
+                <field name="project_id" filters="1"/>
+                <field name="product_id"/>
+                <field name="operation_name"/>
+                <field name="hours" widget="float_time"/>
+                <field name="status"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_plan_line_pivot" model="ir.ui.view">
+        <field name="name">swaraj.plan.line.pivot</field>
+        <field name="model">swaraj.plan.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Load by Project">
+                <field name="project_id" type="row"/>
+                <field name="date" interval="week" type="col"/>
+                <field name="hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_plan_line_search" model="ir.ui.view">
+        <field name="name">swaraj.plan.line.search</field>
+        <field name="model">swaraj.plan.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="workcenter_id"/>
+                <field name="project_id"/>
+                <field name="production_id"/>
+                <field name="product_id"/>
+                <field name="run_id"/>
+                <filter name="filter_today" string="Today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_week" string="Next 7 Days"
+                        domain="[('date', '&gt;=', context_today().strftime('%Y-%m-%d')), ('date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="filter_outsource" string="Outsource" domain="[('status', '=', 'outsource')]"/>
+                <filter name="filter_late" string="Late" domain="[('status', '=', 'late')]"/>
+                <filter name="filter_alt" string="Alternate Work Centre" domain="[('status', '=', 'alternate')]"/>
+                <separator/>
+                <filter name="filter_u1" string="Unit 1" domain="[('warehouse_id.code', '=', 'U1')]"/>
+                <filter name="filter_u2" string="Unit 2" domain="[('warehouse_id.code', '=', 'U2')]"/>
+                <separator/>
+                <group>
+                    <filter name="group_date" string="Day" context="{'group_by': 'date:day'}"/>
+                    <filter name="group_wc" string="Work Centre" context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="group_status" string="Decision" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_plan_line_board" model="ir.actions.act_window">
+        <field name="name">Day-wise Board</field>
+        <field name="res_model">swaraj.plan.line</field>
+        <field name="view_mode">list,calendar,pivot</field>
+        <field name="context">{'search_default_group_date': 1, 'search_default_group_wc': 1, 'search_default_filter_week': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Run a plan to see the day-wise schedule.</p></field>
+    </record>
+
+    <record id="action_plan_line_outsource" model="ir.actions.act_window">
+        <field name="name">Outsourcing Flags</field>
+        <field name="res_model">swaraj.plan.line</field>
+        <field name="view_mode">list,pivot</field>
+        <field name="context">{'search_default_filter_outsource': 1, 'search_default_group_wc': 1}</field>
+    </record>
+
+    <!-- ============ Capacity ============ -->
+    <record id="view_plan_capacity_list" model="ir.ui.view">
+        <field name="name">swaraj.plan.capacity.list</field>
+        <field name="model">swaraj.plan.capacity</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-danger="excess_hours &gt; 0" decoration-warning="utilization &gt;= 95 and excess_hours == 0"
+                  decoration-muted="planned_hours == 0">
+                <field name="date"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="workcenter_id"/>
+                <field name="available_hours" widget="float_time" sum="Available"/>
+                <field name="planned_hours" widget="float_time" sum="Planned"/>
+                <field name="free_hours" widget="float_time" sum="Free"/>
+                <field name="utilization" widget="progressbar"/>
+                <field name="excess_hours" widget="float_time" sum="Beyond capacity"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_plan_capacity_pivot" model="ir.ui.view">
+        <field name="name">swaraj.plan.capacity.pivot</field>
+        <field name="model">swaraj.plan.capacity</field>
+        <field name="arch" type="xml">
+            <pivot string="Capacity Load">
+                <field name="workcenter_id" type="row"/>
+                <field name="date" interval="day" type="col"/>
+                <field name="utilization" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_plan_capacity_graph" model="ir.ui.view">
+        <field name="name">swaraj.plan.capacity.graph</field>
+        <field name="model">swaraj.plan.capacity</field>
+        <field name="arch" type="xml">
+            <graph string="Load vs Capacity" type="bar">
+                <field name="workcenter_id"/>
+                <field name="planned_hours" type="measure"/>
+                <field name="free_hours" type="measure"/>
+                <field name="excess_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_plan_capacity_search" model="ir.ui.view">
+        <field name="name">swaraj.plan.capacity.search</field>
+        <field name="model">swaraj.plan.capacity</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="workcenter_id"/>
+                <field name="run_id"/>
+                <filter name="filter_full" string="Full or Over" domain="['|', ('utilization', '&gt;=', 95), ('excess_hours', '&gt;', 0)]"/>
+                <filter name="filter_free" string="Has Free Capacity" domain="[('free_hours', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="filter_u1" string="Unit 1" domain="[('warehouse_id.code', '=', 'U1')]"/>
+                <filter name="filter_u2" string="Unit 2" domain="[('warehouse_id.code', '=', 'U2')]"/>
+                <separator/>
+                <group>
+                    <filter name="group_wc" string="Work Centre" context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_unit" string="Unit" context="{'group_by': 'warehouse_id'}"/>
+                    <filter name="group_week" string="Week" context="{'group_by': 'date:week'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_plan_capacity" model="ir.actions.act_window">
+        <field name="name">Capacity Load</field>
+        <field name="res_model">swaraj.plan.capacity</field>
+        <field name="view_mode">pivot,graph,list</field>
+    </record>
+
+    <!-- ============ Order status ============ -->
+    <record id="view_plan_mo_list" model="ir.ui.view">
+        <field name="name">swaraj.plan.mo.list</field>
+        <field name="model">swaraj.plan.mo</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-danger="status == 'late'">
+                <field name="project_id"/>
+                <field name="production_id"/>
+                <field name="level"/>
+                <field name="product_id"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="planned_start"/>
+                <field name="planned_finish"/>
+                <field name="required_date"/>
+                <field name="delay_days"/>
+                <field name="outsourced_ops"/>
+                <field name="status" widget="badge" decoration-success="status == 'on_time'" decoration-danger="status == 'late'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_plan_mo_search" model="ir.ui.view">
+        <field name="name">swaraj.plan.mo.search</field>
+        <field name="model">swaraj.plan.mo</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="project_id"/>
+                <field name="production_id"/>
+                <field name="run_id"/>
+                <filter name="filter_late" string="At Risk" domain="[('status', '=', 'late')]"/>
+                <filter name="filter_top" string="Machines Only" domain="[('level', '=', 0)]"/>
+                <separator/>
+                <group>
+                    <filter name="group_project" string="Project" context="{'group_by': 'project_id'}"/>
+                    <filter name="group_level" string="BOM Level" context="{'group_by': 'level'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_plan_mo" model="ir.actions.act_window">
+        <field name="name">Project Status</field>
+        <field name="res_model">swaraj.plan.mo</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_group_project': 1}</field>
+    </record>
+
+    <!-- ============ Material ============ -->
+    <record id="view_plan_material_list" model="ir.ui.view">
+        <field name="name">swaraj.plan.material.list</field>
+        <field name="model">swaraj.plan.material</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-danger="shortage &gt; 0">
+                <field name="product_id"/>
+                <field name="vendor_id"/>
+                <field name="required_qty"/>
+                <field name="on_hand_qty"/>
+                <field name="shortage"/>
+                <field name="need_by"/>
+                <field name="purchase_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_plan_material" model="ir.actions.act_window">
+        <field name="name">Material Shortages</field>
+        <field name="res_model">swaraj.plan.material</field>
+        <field name="view_mode">list</field>
+        <field name="domain">[('shortage', '&gt;', 0)]</field>
+    </record>
+
+    <!-- ============ Plan run ============ -->
+    <record id="view_plan_run_list" model="ir.ui.view">
+        <field name="name">swaraj.plan.run.list</field>
+        <field name="model">swaraj.plan.run</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="horizon_days"/>
+                <field name="warehouse_ids" widget="many2many_tags"/>
+                <field name="kpi_orders"/>
+                <field name="kpi_outsource_ops"/>
+                <field name="kpi_late_orders"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_plan_run_form" model="ir.ui.view">
+        <field name="name">swaraj.plan.run.form</field>
+        <field name="model">swaraj.plan.run</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_run_plan" type="object" string="Run Plan" class="btn-primary"/>
+                    <button name="action_create_jobwork_po" type="object" string="Raise Job-Work POs"
+                            invisible="state == 'draft' or kpi_outsource_ops == 0"/>
+                    <button name="action_create_rfqs" type="object" string="RFQs for Shortages"
+                            invisible="state == 'draft' or kpi_shortages == 0"/>
+                    <button name="action_apply_to_workorders" type="object" string="Apply to Work Orders"
+                            invisible="state != 'planned'"
+                            confirm="Write planned dates onto the work orders?"/>
+                    <button name="action_export_xlsx" type="object" string="Export Plan (Excel)"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_board" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="kpi_hours" widget="statinfo" string="Hours Planned"/>
+                        </button>
+                        <button name="action_open_capacity" type="object" class="oe_stat_button" icon="fa-tachometer">
+                            <field name="kpi_full_days" widget="statinfo" string="Full WC-Days"/>
+                        </button>
+                        <button name="action_open_outsource" type="object" class="oe_stat_button" icon="fa-truck">
+                            <field name="kpi_outsource_ops" widget="statinfo" string="To Outsource"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="horizon_days"/>
+                            <field name="hours_per_day_rule"/>
+                        </group>
+                        <group>
+                            <field name="warehouse_ids" widget="many2many_tags" placeholder="All units"/>
+                            <field name="project_ids" widget="many2many_tags" placeholder="All open projects"/>
+                            <field name="company_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <group invisible="state == 'draft'">
+                        <group string="Plan Health">
+                            <field name="kpi_projects"/>
+                            <field name="kpi_orders"/>
+                            <field name="kpi_late_orders" decoration-danger="kpi_late_orders &gt; 0"/>
+                        </group>
+                        <group string="Load">
+                            <field name="kpi_hours" widget="float_time"/>
+                            <field name="kpi_outsource_hours" widget="float_time"/>
+                            <field name="kpi_shortages"/>
+                        </group>
+                    </group>
+                    <notebook invisible="state == 'draft'">
+                        <page string="What Can We Build On..." name="day">
+                            <group><field name="view_date"/></group>
+                            <separator string="Capacity that day"/>
+                            <field name="day_capacity_ids" nolabel="1" readonly="1"/>
+                            <separator string="Planned work that day"/>
+                            <field name="day_line_ids" nolabel="1" readonly="1"/>
+                        </page>
+                        <page string="Project Status" name="orders">
+                            <field name="mo_summary_ids" readonly="1"/>
+                        </page>
+                        <page string="Day-wise Plan" name="lines">
+                            <field name="line_ids" readonly="1"/>
+                        </page>
+                        <page string="Material" name="material">
+                            <field name="material_ids" readonly="1"/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="note"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_plan_run" model="ir.actions.act_window">
+        <field name="name">Plan Runs</field>
+        <field name="res_model">swaraj.plan.run</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Create a plan run and press Run Plan.</p></field>
+    </record>
+</odoo>
